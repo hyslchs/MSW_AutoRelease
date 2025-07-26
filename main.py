@@ -11,6 +11,7 @@ ID_FILE = "product_ids.txt"
 URL_PREFIX = "https://maplestoryworlds.nexon.com/zh-tw/avatar/register/"
 BATCH_SIZE = 10
 
+
 def login(driver, cookie_path="cookies.pkl"):
     driver.get("https://maplestoryworlds.nexon.com/zh-tw/")
     time.sleep(2)
@@ -20,12 +21,29 @@ def login(driver, cookie_path="cookies.pkl"):
         cookie.pop("sameSite", None)
         driver.add_cookie(cookie)
     driver.refresh()
+    time.sleep(2)
+    close_popup_if_exists(driver)
     print("✅ 已成功登入")
+
+
+def close_popup_if_exists(driver):
+    try:
+        wait = WebDriverWait(driver, 5)
+        close_btn = wait.until(EC.element_to_be_clickable((
+            By.XPATH,
+            "//button[contains(@class, 'btn') and contains(@class, 'btn_none') and contains(., 'Do Not Show Again Today')]"
+        )))
+        driver.execute_script("arguments[0].click();", close_btn)
+        print("🔕 已關閉彈出式視窗")
+    except:
+        pass  # 如果沒有跳窗就略過
+
 
 def load_product_urls(id_file):
     with open(id_file, "r", encoding="utf-8") as f:
         ids = [line.strip() for line in f if line.strip()]
     return [URL_PREFIX + pid for pid in ids]
+
 
 def select_mode():
     print("\n🔧 請選擇要執行的操作模式：")
@@ -38,10 +56,12 @@ def select_mode():
             return mode
         print("⚠️ 無效輸入，請輸入 1、2 或 q")
 
+
 def process_product(driver, url, mode):
     try:
         driver.get(url)
         wait = WebDriverWait(driver, 10)
+        close_popup_if_exists(driver)
 
         if mode == "1":
             label = wait.until(EC.element_to_be_clickable((By.XPATH, "//label[@for='published' and contains(@class, 'check__radio')]")))
@@ -55,14 +75,15 @@ def process_product(driver, url, mode):
             print("⚠️ 模式錯誤，跳過")
             return
 
-        #time.sleep(0.5)
+        time.sleep(0.5)
         modify_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'btn') and contains(., '修改')]")))
         driver.execute_script("arguments[0].click();", modify_btn)
         print("✅ 修改完成")
-        #time.sleep(1)
+        time.sleep(1)
 
     except Exception as e:
         print(f"❌ 操作失敗：{url}\n原因：{e}")
+
 
 def main():
     chrome_options = Options()
@@ -73,11 +94,13 @@ def main():
         login(driver)
         product_urls = load_product_urls(ID_FILE)
         total = len(product_urls)
+        user_quit = False
 
         while True:
             mode = select_mode()
             if mode == "q":
                 print("👋 程式結束，瀏覽器保留開啟狀態。")
+                user_quit = True
                 break
 
             index = 0
@@ -96,9 +119,11 @@ def main():
                 if again == "q":
                     break
 
-        input("\n🕒 按 Enter 鍵關閉瀏覽器...")
+        if not user_quit:
+            input("\n🕒 按 Enter 鍵關閉瀏覽器...")
     finally:
         driver.quit()
+
 
 if __name__ == "__main__":
     main()
