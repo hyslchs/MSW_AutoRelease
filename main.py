@@ -99,7 +99,7 @@ def main():
         while True:
             mode = select_mode()
             if mode == "q":
-                print("👋 程式結束，瀏覽器保留開啟狀態。")
+                print("👋 程式結束。")
                 user_quit = True
                 break
 
