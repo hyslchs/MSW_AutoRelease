@@ -7,59 +7,95 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# === 設定 Selenium 瀏覽器選項 ===
-chrome_options = Options()
-chrome_options.add_argument("--start-maximized")  # 最大化視窗
-# chrome_options.add_argument("--headless")       # 無頭模式（若不需要顯示視窗）
+# === 設定 ===
+ID_FILE = "product_ids.txt"
+URL_PREFIX = "https://maplestoryworlds.nexon.com/zh-tw/avatar/register/"
+BATCH_SIZE = 10
 
-# === 初始化 Driver ===
-service = Service()  # 可指定 chromedriver 路徑，例如 Service("chromedriver.exe")
-driver = webdriver.Chrome(service=service, options=chrome_options)
+# === 載入商品 ID 清單 ===
+def load_product_urls(id_file):
+    with open(id_file, "r", encoding="utf-8") as f:
+        ids = [line.strip() for line in f if line.strip()]
+    return [URL_PREFIX + pid for pid in ids]
 
-# === 1. 先進入網域以便設置 Cookie ===
-url = "https://maplestoryworlds.nexon.com/zh-tw/"
-driver.get(url)
-time.sleep(3)  # 確保網頁載入完成
-
-# === 2. 載入並添加 cookie ===
-try:
-    with open("cookies.pkl", "rb") as f:
+# === 載入 cookie 登入 ===
+def load_cookies(driver, cookie_path="cookies.pkl"):
+    driver.get("https://maplestoryworlds.nexon.com/zh-tw/")
+    time.sleep(2)
+    with open(cookie_path, "rb") as f:
         cookies = pickle.load(f)
     for cookie in cookies:
-        # 有些 cookie 可能缺少 'sameSite'，會導致 add_cookie 出錯
-        cookie.pop('sameSite', None)
+        cookie.pop("sameSite", None)
         driver.add_cookie(cookie)
-    print("✅ 已成功導入 cookies")
-except Exception as e:
-    print("❌ Cookie 載入失敗：", e)
-    driver.quit()
-    exit()
+    print("✅ Cookies 載入完成")
 
-# === 3. 登入完成後重新載入目標頁面 ===
-target_url = "https://maplestoryworlds.nexon.com/zh-tw/avatar/register/76O1F77UL"
-driver.get(target_url)
-time.sleep(3)
+# === 單一商品操作 ===
+def process_product(driver, url, mode):
+    try:
+        driver.get(url)
+        wait = WebDriverWait(driver, 10)
 
-# === 4. 點擊「上架」按鈕 ===
-try:
-    publish_label = driver.find_element(By.XPATH, "//label[@for='published' and contains(@class, 'check__radio')]")
-    driver.execute_script("arguments[0].click();", publish_label)
-    print("✅ 已點擊『上架』按鈕")
-except Exception as e:
-    print("❌ 無法點擊『上架』按鈕：", e)
+        if mode == "1":
+            label = wait.until(EC.element_to_be_clickable((By.XPATH, "//label[@for='published' and contains(@class, 'check__radio')]")))
+            driver.execute_script("arguments[0].click();", label)
+            print(f"✅ 上架：{url}")
+        elif mode == "2":
+            label = wait.until(EC.element_to_be_clickable((By.XPATH, "//label[@for='unPublished' and contains(@class, 'check__radio')]")))
+            driver.execute_script("arguments[0].click();", label)
+            print(f"✅ 下架：{url}")
+        else:
+            print("⚠️ 模式無效，跳過")
+            return
 
-# === 5. 點擊「修改」按鈕 ===
-try:
-    wait = WebDriverWait(driver, 10)
-    # 改用包含文字「修改」的按鈕
-    modify_button = wait.until(EC.element_to_be_clickable((
-        By.XPATH, "//button[contains(@class, 'btn') and contains(., '修改')]"
-    )))
-    driver.execute_script("arguments[0].click();", modify_button)
-    print("✅ 已點擊『修改』按鈕")
-except Exception as e:
-    print("❌ 點擊『修改』按鈕失敗：", e)
+        time.sleep(0.5)
+        modify_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'btn') and contains(., '修改')]")))
+        driver.execute_script("arguments[0].click();", modify_btn)
+        print(f"✅ 修改完成：{url}")
+        time.sleep(1)
 
-# === 6. 停留等待後續指令 ===
-input("🕒 操作完成，請按 Enter 鍵結束程式...")
-driver.quit()
+    except Exception as e:
+        print(f"❌ 操作失敗：{url}\n原因：{e}")
+
+# === 主流程 ===
+def main():
+    chrome_options = Options()
+    chrome_options.add_argument("--start-maximized")
+    driver = webdriver.Chrome(service=Service(), options=chrome_options)
+
+    try:
+        load_cookies(driver)
+        product_urls = load_product_urls(ID_FILE)
+
+        total = len(product_urls)
+        index = 0
+
+        while index < total:
+            print("\n🔸 請選擇操作模式：")
+            print("[1] 上架 10 件")
+            print("[2] 下架 10 件")
+            print("[q] 離開程式")
+            choice = input("👉 請輸入選項：").strip().lower()
+
+            if choice == "q":
+                print("👋 已結束程式")
+                break
+            elif choice not in ["1", "2"]:
+                print("⚠️ 無效輸入，請重新輸入 1 / 2 / q")
+                continue
+
+            batch = product_urls[index:index + BATCH_SIZE]
+            print(f"\n🚀 處理第 {index + 1} ~ {index + len(batch)} 件商品...")
+            for url in batch:
+                process_product(driver, url, choice)
+
+            index += len(batch)
+
+            if index >= total:
+                print("✅ 所有商品已處理完畢！")
+                break
+
+    finally:
+        driver.quit()
+
+if __name__ == "__main__":
+    main()

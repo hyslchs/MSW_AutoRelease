@@ -180,3 +180,4 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 cookies.pkl
+product_ids.txt
