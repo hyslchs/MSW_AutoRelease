@@ -55,11 +55,11 @@ def process_product(driver, url, mode):
             print("⚠️ 模式錯誤，跳過")
             return
 
-        time.sleep(0.5)
+        #time.sleep(0.5)
         modify_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'btn') and contains(., '修改')]")))
         driver.execute_script("arguments[0].click();", modify_btn)
         print("✅ 修改完成")
-        time.sleep(1)
+        #time.sleep(1)
 
     except Exception as e:
         print(f"❌ 操作失敗：{url}\n原因：{e}")
