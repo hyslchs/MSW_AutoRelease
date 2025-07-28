@@ -182,3 +182,4 @@ cython_debug/
 cookies.pkl
 product_ids.txt
 item_data.csv
+GEMINI.md
