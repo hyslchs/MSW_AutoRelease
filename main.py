@@ -39,6 +39,22 @@ def close_popup_if_exists(driver):
         pass  # 如果沒有跳窗就略過
 
 
+def open_browser_and_login(cookie_path="cookies.pkl"):
+    """Open browser, login with saved cookies and return driver."""
+    chrome_options = Options()
+    chrome_options.add_argument("--start-maximized")
+    driver = webdriver.Chrome(service=Service(), options=chrome_options)
+    login(driver, cookie_path)
+    return driver
+
+
+def process_batch(driver, item_ids, mode):
+    """Process a list of item IDs with the given mode."""
+    for item_id in item_ids:
+        url = URL_PREFIX + item_id
+        process_product(driver, url, mode)
+
+
 def load_product_urls(id_file):
     with open(id_file, "r", encoding="utf-8") as f:
         ids = [line.strip() for line in f if line.strip()]
