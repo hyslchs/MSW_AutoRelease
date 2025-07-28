@@ -1,9 +1,19 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 
 import take_cookie
 from pick_item_id import load_item_data, draw_batch
 from main import open_browser_and_login, process_batch
+
+# Status message handling
+status_var = None
+
+
+def update_status(msg):
+    """Display a status message in the GUI and print it."""
+    if status_var is not None:
+        status_var.set(msg)
+    print(msg)
 
 # Global state
 manual_driver = None
@@ -19,21 +29,21 @@ interference_pool = []
 def open_manual_browser():
     global manual_driver
     if manual_driver:
-        messagebox.showinfo("提示", "瀏覽器已開啟")
+        update_status("瀏覽器已開啟")
         return
     manual_driver = take_cookie.open_browser()
-    messagebox.showinfo("提示", "請在瀏覽器中登入，完成後點擊『儲存 Cookie 並關閉瀏覽器』")
+    update_status("請在瀏覽器中登入，完成後點擊『儲存 Cookie 並關閉瀏覽器』")
 
 
 def save_cookie_and_close():
     global manual_driver
     if not manual_driver:
-        messagebox.showerror("錯誤", "尚未開啟瀏覽器")
+        update_status("尚未開啟瀏覽器")
         return
     take_cookie.save_cookies(manual_driver)
     manual_driver.quit()
     manual_driver = None
-    messagebox.showinfo("提示", "Cookie 已儲存")
+    update_status("Cookie 已儲存")
 
 
 def browse_csv():
@@ -50,7 +60,7 @@ def browse_csv():
             if sets:
                 correct_set_var.set(str(sets[0]))
         except Exception as e:
-            messagebox.showerror("錯誤", str(e))
+            update_status(str(e))
 
 
 def generate_batch():
@@ -58,7 +68,7 @@ def generate_batch():
     global batches
     try:
         if not valid_map:
-            messagebox.showerror("錯誤", "請先選擇 CSV 檔")
+            update_status("請先選擇 CSV 檔")
             return
 
         total = int(total_var.get())
@@ -71,7 +81,7 @@ def generate_batch():
         listbox.insert(tk.END, f"第 1 組：{batch}")
         listbox.selection_set(0)
     except Exception as e:
-        messagebox.showerror("錯誤", str(e))
+        update_status(str(e))
 
 
 def on_select(event):
@@ -84,22 +94,22 @@ def on_select(event):
 def open_auto_browser():
     global main_driver
     if main_driver:
-        messagebox.showinfo("提示", "瀏覽器已開啟")
+        update_status("瀏覽器已開啟")
         return
     main_driver = open_browser_and_login()
-    messagebox.showinfo("提示", "已自動登入完成")
+    update_status("已自動登入完成")
 
 
 def start_publish(mode):
     if not main_driver:
-        messagebox.showerror("錯誤", "請先開啟瀏覽器並登入")
+        update_status("請先開啟瀏覽器並登入")
         return
     if not batches:
-        messagebox.showerror("錯誤", "請先產生抽取結果")
+        update_status("請先產生抽取結果")
         return
     ids = batches[selected_index]
     process_batch(main_driver, ids, mode)
-    messagebox.showinfo("完成", "操作完成")
+    update_status("操作完成")
 
 
 def close_main_browser():
@@ -111,6 +121,7 @@ def close_main_browser():
 
 root = tk.Tk()
 root.title("MSW Auto Release")
+status_var = tk.StringVar()
 
 # ----- Step 1 -----
 frame1 = tk.LabelFrame(root, text="1. 手動登入並儲存 Cookie")
@@ -168,5 +179,9 @@ btn_unpublish.pack(side="left", padx=5, pady=5)
 
 btn_close = tk.Button(frame3, text="關閉瀏覽器", command=close_main_browser)
 btn_close.pack(side="left", padx=5, pady=5)
+
+# ----- Status Bar -----
+status_label = tk.Label(root, textvariable=status_var, anchor="w")
+status_label.pack(fill="x", padx=5, pady=5)
 
 root.mainloop()
