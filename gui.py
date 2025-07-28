@@ -11,6 +11,10 @@ main_driver = None
 batches = []
 selected_index = 0
 
+# Data loaded from CSV
+valid_map = {}
+interference_pool = []
+
 
 def open_manual_browser():
     global manual_driver
@@ -36,15 +40,32 @@ def browse_csv():
     path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
     if path:
         csv_path_var.set(path)
+        try:
+            global valid_map, interference_pool
+            valid_map, interference_pool, sets = load_item_data(path)
+            menu = correct_menu['menu']
+            menu.delete(0, 'end')
+            for s in sets:
+                menu.add_command(label=str(s), command=tk._setit(correct_set_var, str(s)))
+            if sets:
+                correct_set_var.set(str(sets[0]))
+        except Exception as e:
+            messagebox.showerror("錯誤", str(e))
 
 
 def generate_batch():
     """Generate a single batch and display it in the listbox."""
     global batches
     try:
-        valid, interference = load_item_data(csv_path_var.get())
+        if not valid_map:
+            messagebox.showerror("錯誤", "請先選擇 CSV 檔")
+            return
+
         total = int(total_var.get())
-        batch = draw_batch(valid, interference, total)
+        selected = correct_set_var.get().strip()
+        selected = int(selected) if selected else None
+
+        batch = draw_batch(valid_map, interference_pool, total, selected)
         batches = [batch]
         listbox.delete(0, tk.END)
         listbox.insert(tk.END, f"第 1 組：{batch}")
@@ -120,8 +141,13 @@ total_var = tk.StringVar(value="10")
 
 tk.Entry(subframe, textvariable=total_var, width=5).grid(row=0, column=1)
 
+tk.Label(subframe, text="correct_set").grid(row=0, column=2, padx=(10,0))
+correct_set_var = tk.StringVar()
+correct_menu = tk.OptionMenu(subframe, correct_set_var, "")
+correct_menu.grid(row=0, column=3)
+
 btn_generate = tk.Button(subframe, text="產生結果", command=generate_batch)
-btn_generate.grid(row=0, column=2, padx=5)
+btn_generate.grid(row=0, column=4, padx=5)
 
 listbox = tk.Listbox(frame2, height=5)
 listbox.pack(fill="x", padx=5, pady=5)

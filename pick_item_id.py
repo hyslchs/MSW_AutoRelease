@@ -3,24 +3,45 @@ import pandas as pd
 
 # === 資料載入區 ===
 def load_item_data(csv_path):
+    """Load item data and return (valid_map, interference_pool, all_sets)."""
     df = pd.read_csv(csv_path)
 
-    # 將正確組合依據 correct_set 分組（排除 correct_set=0）
-    valid_combinations = []
-    for _, group in df[df["correct_set"] > 0].groupby("correct_set"):
-        valid_combinations.append(group["item_id"].tolist())
+    # 依 correct_set 分組（排除 correct_set=0），取得每組對應的 item_id
+    valid_map = {
+        int(cs): group["item_id"].tolist()
+        for cs, group in df[df["correct_set"] > 0].groupby("correct_set")
+    }
 
     # 取出 correct_set=0 的干擾項目，並移除重複值以避免後續抽取時產生重複
     interference_pool = (
         df[df["correct_set"] == 0]["item_id"].drop_duplicates().tolist()
     )
 
-    return valid_combinations, interference_pool
+    all_sets = df["correct_set"].drop_duplicates().tolist()
+
+    return valid_map, interference_pool, all_sets
 
 # === 抽取邏輯區 ===
-def draw_batch(valid_combinations, interference_pool, total_count):
-    """Draw a single batch using one correct combination."""
-    selected_set = random.choice(valid_combinations)
+def draw_batch(valid_map, interference_pool, total_count, correct_set=None):
+    """Draw a single batch using one correct combination.
+
+    Parameters
+    ----------
+    valid_map : dict
+        Mapping from correct_set value to list of item IDs.
+    interference_pool : list
+        List of item IDs available for interference.
+    total_count : int
+        Total number of IDs to draw.
+    correct_set : int or None
+        If provided, use this correct_set instead of picking randomly.
+    """
+    if correct_set is None:
+        # Randomly choose a valid set when not specified
+        selected_set = random.choice(list(valid_map.values())) if valid_map else []
+    else:
+        selected_set = valid_map.get(int(correct_set), [])
+
     if total_count < len(selected_set):
         raise ValueError("總抽取數量不能小於正確組合長度")
 
@@ -40,11 +61,15 @@ def draw_batch(valid_combinations, interference_pool, total_count):
 if __name__ == "__main__":
     try:
         # 讀取資料
-        valid_combinations, interference_pool = load_item_data("item_data.csv")
+        valid_map, interference_pool, all_sets = load_item_data("item_data.csv")
+
+        print(f"可選擇的 correct_set 有: {all_sets}")
+        selected = input("請輸入要使用的 correct_set (留空則隨機)：").strip()
+        selected = int(selected) if selected else None
 
         total_count = int(input("請輸入每次總共要抽幾個編號（例如 10）："))
 
-        batch = draw_batch(valid_combinations, interference_pool, total_count)
+        batch = draw_batch(valid_map, interference_pool, total_count, selected)
 
         print("\n✅ 抽取結果如下：")
         print(batch)
