@@ -181,3 +181,4 @@ cython_debug/
 .cursorindexingignore
 cookies.pkl
 product_ids.txt
+item_data.csv
