@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 
 import take_cookie
-from pick_item_id import load_item_data, draw_batches
+from pick_item_id import load_item_data, draw_batch
 from main import open_browser_and_login, process_batch
 
 # Global state
@@ -38,21 +38,17 @@ def browse_csv():
         csv_path_var.set(path)
 
 
-def generate_batches():
+def generate_batch():
+    """Generate a single batch and display it in the listbox."""
     global batches
     try:
         valid, interference = load_item_data(csv_path_var.get())
         total = int(total_var.get())
-        correct = int(correct_var.get())
-        if correct >= total:
-            messagebox.showerror("錯誤", "正確編號數不能大於或等於總抽取數量")
-            return
-        batches = draw_batches(valid, interference, total, correct)
+        batch = draw_batch(valid, interference, total)
+        batches = [batch]
         listbox.delete(0, tk.END)
-        for idx, b in enumerate(batches, 1):
-            listbox.insert(tk.END, f"第 {idx} 組：{b}")
-        if not batches:
-            messagebox.showinfo("結果", "無法抽出任何一組，可能是正確編號不足。")
+        listbox.insert(tk.END, f"第 1 組：{batch}")
+        listbox.selection_set(0)
     except Exception as e:
         messagebox.showerror("錯誤", str(e))
 
@@ -121,16 +117,11 @@ subframe.pack(fill="x", pady=5)
 tk.Label(subframe, text="每次總抽取數").grid(row=0, column=0)
 
 total_var = tk.StringVar(value="10")
-correct_var = tk.StringVar(value="2")
 
 tk.Entry(subframe, textvariable=total_var, width=5).grid(row=0, column=1)
 
-tk.Label(subframe, text="正確編號數").grid(row=0, column=2)
-
-tk.Entry(subframe, textvariable=correct_var, width=5).grid(row=0, column=3)
-
-btn_generate = tk.Button(subframe, text="產生結果", command=generate_batches)
-btn_generate.grid(row=0, column=4, padx=5)
+btn_generate = tk.Button(subframe, text="產生結果", command=generate_batch)
+btn_generate.grid(row=0, column=2, padx=5)
 
 listbox = tk.Listbox(frame2, height=5)
 listbox.pack(fill="x", padx=5, pady=5)
