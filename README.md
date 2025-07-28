@@ -1,17 +1,33 @@
 # MSW_AutoRelease
 
-### 需求
-- 自行下載一個符合你系統環境的 chromedrive:
-https://googlechromelabs.github.io/chrome-for-testing/
-並且放置在同一路徑下
+## Requirements
+- Download a ChromeDriver that matches your OS from
+  <https://googlechromelabs.github.io/chrome-for-testing/> and place it in the
+  same directory.
+- Prepare an `item_data.csv` file which contains your product information.
+- Install Python dependencies:
 
-- 同一路徑下建立一個 `product_ids.txt`，裡面放你欲上架的商品 ID
+```bash
+pip install -r requirements.txt
+```
 
+## Usage
+Run the GUI and follow the on screen steps:
 
----
-### 操作流程
-1. 先執行 `take_cookie.py` 手動登入後，在終端機輸入 `y` 儲存 cookies.pkl
-(注意請手動輸入帳號密碼，第三方登入會被擋)
+```bash
+python gui.py
+```
 
-2. 接著執行 `main.py`，依照終端機的提示進行 一鍵上架/下架 的操作，會根據在 `product_ids.txt` 的順序執行，直到最後一行操作完畢為止
+### Workflow
+1. **Manual login** – Click *"開啟瀏覽器並手動登入"* and sign in manually.
+   Afterwards click *"儲存 Cookie 並關閉瀏覽器"* to store `cookies.pkl`.
+2. **Generate item batch** – Choose `item_data.csv`, set the total amount and
+   click *"產生結果"* to create a single batch. The result will appear in the
+   list and be automatically selected.
+3. **Auto upload/remove** – Click *"開啟瀏覽器並自動登入"* and then choose either
+   *"一鍵上架"* or *"一鍵下架"* to process the selected batch. The browser will
+   remain open so you can continue running operations.
+4. Click *"關閉瀏覽器"* when you are done.
 
+The original command line scripts `take_cookie.py`, `pick_item_id.py` and
+`main.py` remain available if you prefer using the terminal.
