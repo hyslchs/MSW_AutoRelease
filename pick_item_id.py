@@ -3,18 +3,23 @@ import pandas as pd
 
 # === 資料載入區 ===
 def load_item_data(csv_path):
-    """Load item data and return (valid_map, interference_pool, all_sets)."""
-    df = pd.read_csv(csv_path)
+    """Load item data and return (valid_map, interference_pool, all_sets).
 
-    # 依 correct_set 分組（排除 correct_set=0），取得每組對應的 item_id
+    ``correct_set`` values can be either numbers or text. ``0`` is reserved for
+    interference items.
+    """
+    df = pd.read_csv(csv_path, dtype={"correct_set": str})
+    df["correct_set"] = df["correct_set"].str.strip()
+
+    # Group by correct_set excluding '0' to build valid_map
     valid_map = {
-        int(cs): group["item_id"].tolist()
-        for cs, group in df[df["correct_set"] > 0].groupby("correct_set")
+        cs: group["item_id"].tolist()
+        for cs, group in df[df["correct_set"] != "0"].groupby("correct_set")
     }
 
-    # 取出 correct_set=0 的干擾項目，並移除重複值以避免後續抽取時產生重複
+    # Items marked with correct_set '0' are used as interference
     interference_pool = (
-        df[df["correct_set"] == 0]["item_id"].drop_duplicates().tolist()
+        df[df["correct_set"] == "0"]["item_id"].drop_duplicates().tolist()
     )
 
     all_sets = df["correct_set"].drop_duplicates().tolist()
@@ -33,14 +38,14 @@ def draw_batch(valid_map, interference_pool, total_count, correct_set=None):
         List of item IDs available for interference.
     total_count : int
         Total number of IDs to draw.
-    correct_set : int or None
-        If provided, use this correct_set instead of picking randomly.
+    correct_set : str or None
+        If provided, use this ``correct_set`` instead of picking randomly.
     """
     if correct_set is None:
         # Randomly choose a valid set when not specified
         selected_set = random.choice(list(valid_map.values())) if valid_map else []
     else:
-        selected_set = valid_map.get(int(correct_set), [])
+        selected_set = valid_map.get(str(correct_set), [])
 
     if total_count < len(selected_set):
         raise ValueError("總抽取數量不能小於正確組合長度")
@@ -65,7 +70,7 @@ if __name__ == "__main__":
 
         print(f"可選擇的 correct_set 有: {all_sets}")
         selected = input("請輸入要使用的 correct_set (留空則隨機)：").strip()
-        selected = int(selected) if selected else None
+        selected = selected if selected else None
 
         total_count = int(input("請輸入每次總共要抽幾個編號（例如 10）："))
 

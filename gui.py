@@ -63,7 +63,7 @@ def generate_batch():
 
         total = int(total_var.get())
         selected = correct_set_var.get().strip()
-        selected = int(selected) if selected else None
+        selected = selected if selected else None
 
         batch = draw_batch(valid_map, interference_pool, total, selected)
         batches = [batch]
