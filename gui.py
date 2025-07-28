@@ -65,7 +65,7 @@ def generate_batch():
     """Generate a single batch and display it in the listbox."""
     global batches
     try:
-        if not valid_map:
+        if not valid_map and not interference_pool:
             update_status("請先選擇 CSV 檔")
             return
 
