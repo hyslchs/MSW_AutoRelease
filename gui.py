@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog
 
 import take_cookie
@@ -53,10 +54,7 @@ def browse_csv():
         try:
             global valid_map, interference_pool
             valid_map, interference_pool, sets = load_item_data(path)
-            menu = correct_menu['menu']
-            menu.delete(0, 'end')
-            for s in sets:
-                menu.add_command(label=str(s), command=tk._setit(correct_set_var, str(s)))
+            correct_combo['values'] = [str(s) for s in sets]
             if sets:
                 correct_set_var.set(str(sets[0]))
         except Exception as e:
@@ -154,8 +152,8 @@ tk.Entry(subframe, textvariable=total_var, width=5).grid(row=0, column=1)
 
 tk.Label(subframe, text="correct_set").grid(row=0, column=2, padx=(10,0))
 correct_set_var = tk.StringVar()
-correct_menu = tk.OptionMenu(subframe, correct_set_var, "")
-correct_menu.grid(row=0, column=3)
+correct_combo = ttk.Combobox(subframe, textvariable=correct_set_var, values=[])
+correct_combo.grid(row=0, column=3)
 
 btn_generate = tk.Button(subframe, text="產生結果", command=generate_batch)
 btn_generate.grid(row=0, column=4, padx=5)
