@@ -10,8 +10,10 @@ def load_item_data(csv_path):
     for _, group in df[df["correct_set"] > 0].groupby("correct_set"):
         valid_combinations.append(group["item_id"].tolist())
 
-    # 取出 correct_set=0 的干擾項目
-    interference_pool = df[df["correct_set"] == 0]["item_id"].tolist()
+    # 取出 correct_set=0 的干擾項目，並移除重複值以避免後續抽取時產生重複
+    interference_pool = (
+        df[df["correct_set"] == 0]["item_id"].drop_duplicates().tolist()
+    )
 
     return valid_combinations, interference_pool
 
@@ -23,7 +25,12 @@ def draw_batch(valid_combinations, interference_pool, total_count):
         raise ValueError("總抽取數量不能小於正確組合長度")
 
     interference_count = total_count - len(selected_set)
-    interference_part = random.choices(interference_pool, k=interference_count)
+
+    if interference_count > len(interference_pool):
+        raise ValueError("干擾項目不足以進行不重複抽取")
+
+    # 使用 sample 以避免抽到重複編號
+    interference_part = random.sample(interference_pool, k=interference_count)
 
     batch = selected_set + interference_part
     random.shuffle(batch)
