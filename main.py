@@ -28,14 +28,14 @@ def login(driver, cookie_path="cookies.pkl"):
 
 def close_popup_if_exists(driver):
     try:
-        wait = WebDriverWait(driver, 5)
-        close_btn = wait.until(EC.element_to_be_clickable((
+        close_btns = driver.find_elements(
             By.XPATH,
-            "//button[contains(@class, 'btn') and contains(@class, 'btn_none') and contains(., 'Do Not Show Again Today')]"
-        )))
-        driver.execute_script("arguments[0].click();", close_btn)
-        print("🔕 已關閉彈出式視窗")
-    except:
+             "//button[contains(@class, 'btn') and contains(@class, 'btn_none') and contains(., 'Do Not Show Again Today')]",
+        )
+        if close_btns:
+            driver.execute_script("arguments[0].click();", close_btns[0])
+            print("🔕 已關閉彈出式視窗")
+    except Exception:
         pass  # 如果沒有跳窗就略過
 
 
