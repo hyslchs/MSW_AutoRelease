@@ -27,7 +27,7 @@ def load_item_data(csv_path):
     return valid_map, interference_pool, all_sets
 
 # === 抽取邏輯區 ===
-def draw_batch(valid_map, interference_pool, total_count, correct_set=None):
+def draw_batch(valid_map, interference_pool, interference_count, correct_set=None):
     """Draw a single batch using one correct combination.
 
     Parameters
@@ -36,8 +36,8 @@ def draw_batch(valid_map, interference_pool, total_count, correct_set=None):
         Mapping from correct_set value to list of item IDs.
     interference_pool : list
         List of item IDs available for interference.
-    total_count : int
-        Total number of IDs to draw.
+    interference_count : int
+        Number of IDs to draw from ``interference_pool``.
     correct_set : str or None
         If provided, use this ``correct_set`` instead of picking randomly.
     """
@@ -47,10 +47,8 @@ def draw_batch(valid_map, interference_pool, total_count, correct_set=None):
     else:
         selected_set = valid_map.get(str(correct_set), [])
 
-    if total_count < len(selected_set):
-        raise ValueError("總抽取數量不能小於正確組合長度")
-
-    interference_count = total_count - len(selected_set)
+    if interference_count < 0:
+        raise ValueError("干擾數量不能為負")
 
     if interference_count > len(interference_pool):
         raise ValueError("干擾項目不足以進行不重複抽取")
@@ -72,9 +70,9 @@ if __name__ == "__main__":
         selected = input("請輸入要使用的 correct_set (留空則隨機)：").strip()
         selected = selected if selected else None
 
-        total_count = int(input("請輸入每次總共要抽幾個編號（例如 10）："))
+        interference_count = int(input("請輸入要抽取多少個干擾用的編號（例如 5）："))
 
-        batch = draw_batch(valid_map, interference_pool, total_count, selected)
+        batch = draw_batch(valid_map, interference_pool, interference_count, selected)
 
         print("\n✅ 抽取結果如下：")
         print(batch)
