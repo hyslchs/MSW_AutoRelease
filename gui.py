@@ -144,7 +144,7 @@ btn_browse.pack(side="left", padx=5)
 subframe = tk.Frame(frame2)
 subframe.pack(fill="x", pady=5)
 
-tk.Label(subframe, text="要加入干擾 ID 數量").grid(row=0, column=0)
+tk.Label(subframe, text="要加入的干擾 ID 數").grid(row=0, column=0)
 
 interference_var = tk.StringVar(value="5")
 
