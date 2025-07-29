@@ -28,20 +28,21 @@ def login(driver, cookie_path="cookies.pkl"):
 
 def close_popup_if_exists(driver):
     try:
-        wait = WebDriverWait(driver, 5)
-        close_btn = wait.until(EC.element_to_be_clickable((
+        close_btns = driver.find_elements(
             By.XPATH,
-            "//button[contains(@class, 'btn') and contains(@class, 'btn_none') and contains(., 'Do Not Show Again Today')]"
-        )))
-        driver.execute_script("arguments[0].click();", close_btn)
-        print("🔕 已關閉彈出式視窗")
-    except:
+             "//button[contains(@class, 'btn') and contains(@class, 'btn_none') and contains(., 'Do Not Show Again Today')]",
+        )
+        if close_btns:
+            driver.execute_script("arguments[0].click();", close_btns[0])
+            print("🔕 已關閉彈出式視窗")
+    except Exception:
         pass  # 如果沒有跳窗就略過
 
 
 def open_browser_and_login(cookie_path="cookies.pkl"):
     """Open browser, login with saved cookies and return driver."""
     chrome_options = Options()
+    chrome_options.page_load_strategy = "eager"
     chrome_options.add_argument("--start-maximized")
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
     login(driver, cookie_path)
@@ -103,6 +104,7 @@ def process_product(driver, url, mode):
 
 def main():
     chrome_options = Options()
+    chrome_options.page_load_strategy = "eager"
     chrome_options.add_argument("--start-maximized")
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
 
