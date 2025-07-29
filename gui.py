@@ -69,11 +69,11 @@ def generate_batch():
             update_status("請先選擇 CSV 檔")
             return
 
-        total = int(total_var.get())
+        interference = int(interference_var.get())
         selected = correct_set_var.get().strip()
         selected = selected if selected else None
 
-        batch = draw_batch(valid_map, interference_pool, total, selected)
+        batch = draw_batch(valid_map, interference_pool, interference, selected)
         batches = [batch]
         listbox.delete(0, tk.END)
         listbox.insert(tk.END, f"第 1 組：{batch}")
@@ -144,11 +144,11 @@ btn_browse.pack(side="left", padx=5)
 subframe = tk.Frame(frame2)
 subframe.pack(fill="x", pady=5)
 
-tk.Label(subframe, text="每次總抽取數").grid(row=0, column=0)
+tk.Label(subframe, text="干擾數量").grid(row=0, column=0)
 
-total_var = tk.StringVar(value="10")
+interference_var = tk.StringVar(value="5")
 
-tk.Entry(subframe, textvariable=total_var, width=5).grid(row=0, column=1)
+tk.Entry(subframe, textvariable=interference_var, width=5).grid(row=0, column=1)
 
 tk.Label(subframe, text="correct_set").grid(row=0, column=2, padx=(10,0))
 correct_set_var = tk.StringVar()

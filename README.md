@@ -21,9 +21,9 @@ python gui.py
 ### Workflow
 1. **Manual login** – Click *"開啟瀏覽器並手動登入"* and sign in manually.
    Afterwards click *"儲存 Cookie 並關閉瀏覽器"* to store `cookies.pkl`.
-2. **Generate item batch** – Choose `item_data.csv`, set the total amount and
-   click *"產生結果"* to create a single batch. The result will appear in the
-   list and be automatically selected.
+2. **Generate item batch** – Choose `item_data.csv`, set how many interference
+   IDs to draw and click *"產生結果"* to create a single batch. The result will
+   appear in the list and be automatically selected.
 3. **Auto upload/remove** – Click *"開啟瀏覽器並自動登入"* and then choose either
    *"一鍵上架"* or *"一鍵下架"* to process the selected batch. The browser will
    remain open so you can continue running operations.
