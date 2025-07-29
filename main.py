@@ -42,6 +42,7 @@ def close_popup_if_exists(driver):
 def open_browser_and_login(cookie_path="cookies.pkl"):
     """Open browser, login with saved cookies and return driver."""
     chrome_options = Options()
+    chrome_options.page_load_strategy = "eager"
     chrome_options.add_argument("--start-maximized")
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
     login(driver, cookie_path)
@@ -103,6 +104,7 @@ def process_product(driver, url, mode):
 
 def main():
     chrome_options = Options()
+    chrome_options.page_load_strategy = "eager"
     chrome_options.add_argument("--start-maximized")
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
 
